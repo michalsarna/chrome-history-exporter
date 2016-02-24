@@ -7,16 +7,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func convertTime(sourceTime int) time.Time {
+func convertTime(sourceTime int) string {
 	var convertedTime int64
 	convertedTime = int64(((sourceTime / 1000000) - 11644473600))
 	tm := time.Unix(convertedTime, 0)
-	return tm
+	return tm.String()
 }
 
 func getHistory(dbPtr string, exportToFile bool, outputFile string) {
@@ -26,22 +27,53 @@ func getHistory(dbPtr string, exportToFile bool, outputFile string) {
 	}
 	defer db.Close()
 
-	var sqlQuerry = "select urls.id, urls.title, urls.url, urls.last_visit_time, urls.visit_count from urls order by urls.id;"
+	var sqlQuerry = "select urls.id, urls.title, urls.url, urls.last_visit_time, urls.visit_count from urls order by urls.id limit 2;"
+	var sqlQuerryToGetRowCount = "select count(*) from urls;"
 
-	rows, err := db.Query(sqlQuerry)
+	rowCount, err := db.Query(sqlQuerryToGetRowCount)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var id int
-		var title string
-		var url string
-		var lastVisitTime int
-		var visitCount int
-		rows.Scan(&id, &title, &url, &lastVisitTime, &visitCount)
-		//to do - output to file or screen
-		fmt.Println(id, title, url, convertTime(lastVisitTime), visitCount)
+	defer rowCount.Close()
+
+	var count int
+	for rowCount.Next() {
+		rowCount.Scan(&count)
+		fmt.Println(count, "Lines in DB !!!")
+	}
+
+	if count != 0 {
+		rows, err := db.Query(sqlQuerry)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+
+		var ansTable [][]string
+		var iterator int
+
+		fmt.Println("ID SiteTitle SiteURL LastVisit VisitsCount")
+		for rows.Next() {
+			var id int
+			var title string
+			var url string
+			var lastVisitTime int
+			var visitCount int
+			rows.Scan(&id, &title, &url, &lastVisitTime, &visitCount)
+			rowToAdd := []string{strconv.Itoa(id), title, url, convertTime(lastVisitTime), strconv.Itoa(visitCount)}
+			ansTable = append(ansTable, rowToAdd)
+			iterator++
+		}
+		if exportToFile {
+			//to do - output to file
+		} else {
+			for i := 0; i < iterator; i++ {
+				fmt.Println(ansTable[i][0], ansTable[i][1], ansTable[i][2], ansTable[i][3], ansTable[i][4])
+				//printing with some additional formating
+			}
+		}
+	} else {
+		fmt.Println("There is nothing to show.")
 	}
 }
 
