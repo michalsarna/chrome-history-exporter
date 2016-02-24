@@ -27,7 +27,7 @@ func getHistory(dbPtr string, exportToFile bool, outputFile string) {
 	}
 	defer db.Close()
 
-	var sqlQuerry = "select urls.id, urls.title, urls.url, urls.last_visit_time, urls.visit_count from urls order by urls.id limit 2;"
+	var sqlQuerry = "select urls.id, urls.title, urls.url, urls.last_visit_time, urls.visit_count from urls order by urls.id;"
 
 	rows, err := db.Query(sqlQuerry)
 	if err != nil {
