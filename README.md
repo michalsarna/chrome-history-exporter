@@ -1,6 +1,6 @@
 # chrome history exporter
 
-It's a small GO program that can be used to get internet history from Chorome web browser.
+It's a small GO program that can be used to get internet history from Chrome web browser.
 
 ## build
     go get github.com/mattn/go-sqlite3
@@ -15,4 +15,4 @@ It's a small GO program that can be used to get internet history from Chorome we
         -out-file string
     	   file to export data to (CSV format) (default "./export.csv")
 
-It's still work in progress and my first GO program. 
+It's still work in progress and my first GO program.
