@@ -15,7 +15,6 @@ import (
 func convertTime(sourceTime int) time.Time {
 	var convertedTime int64
 	convertedTime = int64(((sourceTime / 1000000) - 11644473600))
-	//set ofset of local time zone
 	tm := time.Unix(convertedTime, 0)
 	return tm
 }
@@ -27,7 +26,7 @@ func getHistory(dbPtr string, exportToFile bool, outputFile string) {
 	}
 	defer db.Close()
 
-	var sqlQuerry = "select urls.id, urls.title, urls.url, urls.last_visit_time, urls.visit_count from urls order by urls.id limit 2;"
+	var sqlQuerry = "select urls.id, urls.title, urls.url, urls.last_visit_time, urls.visit_count from urls order by urls.id;"
 
 	rows, err := db.Query(sqlQuerry)
 	if err != nil {
