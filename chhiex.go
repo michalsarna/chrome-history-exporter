@@ -28,53 +28,37 @@ func getHistory(dbPtr string, exportToFile bool, outputFile string) {
 	defer db.Close()
 
 	var sqlQuerry = "select urls.id, urls.title, urls.url, urls.last_visit_time, urls.visit_count from urls order by urls.id limit 2;"
-	var sqlQuerryToGetRowCount = "select count(*) from urls;"
 
-	rowCount, err := db.Query(sqlQuerryToGetRowCount)
+	rows, err := db.Query(sqlQuerry)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer rowCount.Close()
+	defer rows.Close()
 
-	var count int
-	for rowCount.Next() {
-		rowCount.Scan(&count)
-		fmt.Println(count, "Lines in DB !!!")
+	var ansTable [][]string
+	var iterator int
+
+	fmt.Println("ID SiteTitle SiteURL LastVisit VisitsCount")
+	for rows.Next() {
+		var id int
+		var title string
+		var url string
+		var lastVisitTime int
+		var visitCount int
+		rows.Scan(&id, &title, &url, &lastVisitTime, &visitCount)
+		rowToAdd := []string{strconv.Itoa(id), title, url, convertTime(lastVisitTime), strconv.Itoa(visitCount)}
+		ansTable = append(ansTable, rowToAdd)
+		iterator++
 	}
-
-	if count != 0 {
-		rows, err := db.Query(sqlQuerry)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-
-		var ansTable [][]string
-		var iterator int
-
-		fmt.Println("ID SiteTitle SiteURL LastVisit VisitsCount")
-		for rows.Next() {
-			var id int
-			var title string
-			var url string
-			var lastVisitTime int
-			var visitCount int
-			rows.Scan(&id, &title, &url, &lastVisitTime, &visitCount)
-			rowToAdd := []string{strconv.Itoa(id), title, url, convertTime(lastVisitTime), strconv.Itoa(visitCount)}
-			ansTable = append(ansTable, rowToAdd)
-			iterator++
-		}
-		if exportToFile {
-			//to do - output to file
-		} else {
-			for i := 0; i < iterator; i++ {
-				fmt.Println(ansTable[i][0], ansTable[i][1], ansTable[i][2], ansTable[i][3], ansTable[i][4])
-				//printing with some additional formating
-			}
-		}
+	if exportToFile {
+		//to do - output to file
 	} else {
-		fmt.Println("There is nothing to show.")
+		for i := 0; i < iterator; i++ {
+			fmt.Println(ansTable[i][0], ansTable[i][1], ansTable[i][2], ansTable[i][3], ansTable[i][4])
+			//printing with some additional formating
+		}
 	}
+
 }
 
 func writeToCsvFile(data [][]string, outFile string) {
