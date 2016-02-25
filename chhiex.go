@@ -13,6 +13,23 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+func writeToCsvFile(data [][]string, fileName string) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal("Cannot create file ", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+
+	//change delimiter for csv fields from ","
+	writer.Comma = '|'
+	writer.WriteAll(data)
+	if err := writer.Error(); err != nil {
+		log.Fatalln("error writing csv:", err)
+	}
+}
+
 func convertTime(sourceTime int) string {
 	var convertedTime int64
 	convertedTime = int64(((sourceTime / 1000000) - 11644473600))
@@ -38,7 +55,8 @@ func getHistory(dbPtr string, exportToFile bool, outputFile string) {
 	var ansTable [][]string
 	var iterator int
 
-	fmt.Println("ID SiteTitle SiteURL LastVisit VisitsCount")
+	ansTable = append(ansTable, []string{"ID", "Site Title", "Site URL", "Last Visited", "Visits Count"})
+
 	for rows.Next() {
 		var id int
 		var title string
@@ -51,7 +69,7 @@ func getHistory(dbPtr string, exportToFile bool, outputFile string) {
 		iterator++
 	}
 	if exportToFile {
-		//to do - output to file
+		writeToCsvFile(ansTable, outputFile)
 	} else {
 		for i := 0; i < iterator; i++ {
 			fmt.Println(ansTable[i][0], ansTable[i][1], ansTable[i][2], ansTable[i][3], ansTable[i][4])
@@ -59,24 +77,6 @@ func getHistory(dbPtr string, exportToFile bool, outputFile string) {
 		}
 	}
 
-}
-
-func writeToCsvFile(data [][]string, outFile string) {
-	file, err := os.Create(outFile)
-	if err != nil {
-		log.Fatal("Cannot create file ", err)
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-
-	for _, value := range data {
-		err := writer.Write(value)
-		if err != nil {
-			log.Fatal("Cannot write to file ", err)
-		}
-	}
-	writer.Flush()
 }
 
 func main() {
